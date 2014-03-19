@@ -904,7 +904,7 @@ namespace lua_tinker
 		static const char* name(const char* name = NULL)
 		{
 			static char temp[256] = "";
-			if(name) strcpy_s(temp, name);
+			if(name) strcpy(temp, name);
 			return temp;
 		}
 	};
@@ -932,11 +932,38 @@ namespace lua_tinker
 		}
 
 		template<typename T>
+		void set(int index, T object)
+		{
+			if(validate())
+			{
+				lua_pushnumber(m_L, index);
+				push(m_L, object);
+				lua_settable(m_L, m_index);
+			}
+		}
+
+		template<typename T>
 		T get(const char* name)
 		{
 			if(validate())
 			{
 				lua_pushstring(m_L, name);
+				lua_gettable(m_L, m_index);
+			}
+			else
+			{
+				lua_pushnil(m_L);
+			}
+
+			return pop<T>(m_L);
+		}
+
+		template<typename T>
+		T get(int index)
+		{
+			if(validate())
+			{
+				lua_pushnumber(m_L, index);
 				lua_gettable(m_L, m_index);
 			}
 			else
@@ -969,9 +996,21 @@ namespace lua_tinker
 		}
 
 		template<typename T>
+		void set(int index, T object)
+		{
+			m_obj->set(index, object);
+		}
+
+		template<typename T>
 		T get(const char* name)
 		{
 			return m_obj->get<T>(name);
+		}
+
+		template<typename T>
+		T get(int index)
+		{
+			return m_obj->get<T>(index);
 		}
 
 		table_obj*		m_obj;
